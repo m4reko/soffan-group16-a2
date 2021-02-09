@@ -4,7 +4,7 @@ install: skip
 jdk: oraclejdk11
 
 script:
-  - echo yes | ./gradlew build --scan -s
+  - ./gradlew build --scan -s
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
