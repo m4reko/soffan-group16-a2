@@ -28,3 +28,10 @@ application {
     // Define the main class for the application.
     mainClass = 'ciserver.App'
 }
+
+if (hasProperty('buildScan')) {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
+}
