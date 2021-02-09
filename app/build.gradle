@@ -7,8 +7,8 @@
  */
 
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'java'
 }
 
 repositories {
@@ -20,13 +20,19 @@ dependencies {
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
 
-    // This dependency is used by the application.
-    implementation 'com.google.guava:guava:29.0-jre'
+    // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
+    implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.0'
+
+    // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlet
+    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '11.0.0'
+
+    // https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api
+    implementation group: 'jakarta.servlet', name: 'jakarta.servlet-api', version: '5.0.0'
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'ciserver.App'
+    mainClass = 'ciserver.ContinuousIntegrationServer'
 }
 
 if (hasProperty('buildScan')) {
