@@ -17,12 +17,12 @@ public class Repository {
     private CommitStatus commitStatus;
     private Payload payload;
 
-    public Repository(Payload payload) {
+    public Repository(Payload payload) throws IOException {
         this.payload = payload;
         cloneRemote();
     }
 
-    private void cloneRemote() throws IOException{
+    private void cloneRemote() throws IOException {
         String cloneUrl = this.payload.getCloneUrl();
         File file = new File("src/cloneRemote");
 
