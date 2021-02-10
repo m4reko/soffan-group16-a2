@@ -18,7 +18,8 @@ public class Repository {
     private Payload payload;
 
     public Repository(Payload payload) {
-        throw new NotImplementedException();
+        this.payload = payload;
+        cloneRemote();
     }
 
     private void cloneRemote() throws IOException{
