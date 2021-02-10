@@ -1,7 +1,10 @@
 package ciserver;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.File;
+import java.lang.Runtime;
 
 import java.util.UUID;
 
@@ -61,6 +64,29 @@ public class Repository {
      * It would set the commitStatus depending on the outcome of the build command.
      */
     public void build() {
+        String buildCommand = "src/cloneRemote/gradlew build -q";
+        Runtime runtime = Runtime.getRuntime();
+
+        try {
+            Process process = runtime.exec(buildCommand);
+            process.waitFor();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            System.out.println("done");
+            String output = stringBuilder.toString();
+            if (output.equals("")) {
+                this.commitStatus = CommitStatus.SUCCESS;
+            } else {
+                this.commitStatus = CommitStatus.FAILURE;
+            }
+            bufferedReader.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
