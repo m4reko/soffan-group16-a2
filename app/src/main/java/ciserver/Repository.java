@@ -1,7 +1,12 @@
 package ciserver;
 
+import java.io.IOException;
+import java.io.File;
+
 import org.apache.commons.lang3.NotImplementedException;
 
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
 public class Repository {
 
@@ -16,12 +21,21 @@ public class Repository {
         throw new NotImplementedException();
     }
 
-    private void cloneRemote(){
-        throw new NotImplementedException();
+    private void cloneRemote() throws IOException{
+        String cloneUrl = this.payload.getCloneUrl();
+        File file = new File("src/cloneRemote");
+
+        try {
+            Git git = Git.cloneRepository()
+            .setURI(cloneUrl)
+            .setDirectory(file)
+            .call();
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
     }
 
     public void build() {
-        throw new NotImplementedException();
     }
 
     public void reportCommitStatus() {
