@@ -8,21 +8,34 @@ import java.lang.Runtime;
 
 import java.util.UUID;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.api.Response;
+import org.eclipse.jetty.client.util.StringRequestContent;
+import org.json.JSONObject;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
 
 /**
- * Handles the repository functions such as to clone, build, and 
+ * Handles the repository functions such as to clone, build, and
  * report back to Github about the status of it.
  */
 public class Repository {
 
     public enum CommitStatus {
-        ERROR, PENDING, FAILURE, SUCCESS
+        ERROR("error"), PENDING("pending"), FAILURE("failure"), SUCCESS("success");
+
+        public final String value;
+
+        private CommitStatus(String value) {
+            this.value = value;
+        }
     }
 
     private CommitStatus commitStatus;
@@ -64,7 +77,7 @@ public class Repository {
     /**
      * Runs the Gradle build and checks to see if the build is successful or not.
      * It would set the commitStatus depending on the outcome of the build command.
-     * 
+     *
      * @return String the process output
      */
     public String build() {
@@ -106,12 +119,17 @@ public class Repository {
         }
     }
 
-    /**
-     * Sends the commit status after building.
-     * Uses REST API for Github or emails project members.
-     */
-    public void reportCommitStatus() {
-        throw new NotImplementedException();
+    public void reportCommitStatus(HttpClient client, String context)
+            throws InterruptedException, TimeoutException, ExecutionException {
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("state", commitStatus.value);
+        requestBody.put("context", context);
+        Request request = client.POST(this.payload.getStatusesUrl());
+        request.body(new StringRequestContent(requestBody.toString()));
+        Response response = request.send();
+        if (response.getStatus() != 201) {
+            System.err.printf("reportCommitStatus response returned with status: %i%n", response.getStatus());
+        }
     }
 
     /**
@@ -124,12 +142,12 @@ public class Repository {
             return "Success";
         } catch(IOException e) {
             return "Failure";
-        }        
+        }
     }
 
     /**
      * Gets the path of the cloned repository
-     * 
+     *
      * @return String of the location
      */
     public String getClonedRepositoryLocation() {
