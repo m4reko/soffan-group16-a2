@@ -4,11 +4,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.ServletException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import org.eclipse.jgit.api.Git;
+
+import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONTokener;
 
 /**
  Skeleton of a ContinuousIntegrationServer which acts as webhook
@@ -27,12 +34,12 @@ public class ContinuousIntegrationServer extends AbstractHandler
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
 
-        System.out.println(target);
+        Payload payload = new Payload(request);
 
-        // here you do all the continuous integration tasks
-        // for example
-        // 1st clone your repository
-        // 2nd compile the code
+        Repository repo = new Repository(payload);
+
+        repo.build();
+        repo.reportCommitStatus();
 
         response.getWriter().println("CI job done");
     }
