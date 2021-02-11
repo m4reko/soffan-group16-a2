@@ -71,4 +71,13 @@ public class Repository {
         throw new NotImplementedException();
     }
 
+    /**
+     * Gets the path of the cloned repository
+     * 
+     * @return String of the location
+     */
+    public String getClonedRepositoryLocation() {
+        return this.clonedRepositoryLocation;
+    }
+
 }
