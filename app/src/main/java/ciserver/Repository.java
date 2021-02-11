@@ -3,6 +3,8 @@ package ciserver;
 import java.io.IOException;
 import java.io.File;
 
+import java.util.UUID;
+
 import org.apache.commons.lang3.NotImplementedException;
 
 import org.eclipse.jgit.api.Git;
@@ -20,6 +22,7 @@ public class Repository {
 
     private CommitStatus commitStatus;
     private Payload payload;
+    private String clonedRepositoryLocation;
 
     /**
      * Constructs a repository object with a payload.
@@ -29,25 +32,27 @@ public class Repository {
      */
     public Repository(Payload payload) throws IOException {
         this.payload = payload;
-        cloneRemote();
     }
 
     /**
      * Clones the remote repository that is sent in the payload.
      */
-    private void cloneRemote() throws IOException {
+    public String cloneRemote() throws IOException {
         String cloneUrl = this.payload.getCloneUrl();
         String branch = this.payload.getRef();
-        File file = new File("src/cloneRemote");
+        String uniqueID = UUID.randomUUID().toString();
+        this.clonedRepositoryLocation = "src/cloneRemote-" + uniqueID;
+        File file = new File(this.clonedRepositoryLocation);
 
-        try {
-            Git git = Git.cloneRepository()
+        try (Git git = Git.cloneRepository()
             .setURI(cloneUrl)
             .setDirectory(file)
             .setBranch(branch)
-            .call();
+            .call()) {
+            return "Success";
         } catch (GitAPIException e) {
             e.printStackTrace();
+            return "Fail";
         }
     }
 
