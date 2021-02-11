@@ -37,12 +37,14 @@ public class Repository {
      */
     private void cloneRemote() throws IOException {
         String cloneUrl = this.payload.getCloneUrl();
+        String branch = this.payload.getRef();
         File file = new File("src/cloneRemote");
 
         try {
             Git git = Git.cloneRepository()
             .setURI(cloneUrl)
             .setDirectory(file)
+            .setBranch(branch)
             .call();
         } catch (GitAPIException e) {
             e.printStackTrace();
