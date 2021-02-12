@@ -32,6 +32,7 @@ public class ContinuousIntegrationServer extends AbstractHandler
 
         Repository repo = new Repository(payload);
 
+        repo.cloneRemote();
         repo.build();
         repo.reportCommitStatus();
 
