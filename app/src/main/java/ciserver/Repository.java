@@ -62,6 +62,8 @@ public class Repository {
     /**
      * Runs the Gradle build and checks to see if the build is successful or not.
      * It would set the commitStatus depending on the outcome of the build command.
+     * 
+     * @return String the process output
      */
     public String build() {
         String buildCommand = this.clonedRepositoryLocation + "/gradlew build -q";
@@ -76,18 +78,29 @@ public class Repository {
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
+
             String output = stringBuilder.toString();
-            if (output.equals("")) {
-                this.commitStatus = CommitStatus.SUCCESS;
-                return "Success";
-            } else {
-                this.commitStatus = CommitStatus.FAILURE;
-            }
             bufferedReader.close();
-            return "Failure";
+            process.destroy();
+            return output;
         } catch (Exception e) {
             e.printStackTrace();
-            return "Failure";
+            return "Fail";
+        }
+    }
+
+    /**
+     * Parses the output of the build function.
+     *
+     * @return String the status of the output
+     */
+    public String parseBuild(String output) {
+        if (output.equals("")) {
+            this.commitStatus = CommitStatus.SUCCESS;
+            return "Success";
+        } else {
+            this.commitStatus = CommitStatus.FAILURE;
+            return "Fail";
         }
     }
 
