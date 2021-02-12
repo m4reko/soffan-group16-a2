@@ -11,6 +11,13 @@ plugins {
     id 'java'
 }
 
+test {
+    testLogging {
+        outputs.upToDateWhen {false}
+        showStandardStreams = true
+    }
+}
+
 repositories {
     // Use JCenter for resolving dependencies.
     jcenter()

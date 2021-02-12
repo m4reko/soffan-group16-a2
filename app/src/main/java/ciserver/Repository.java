@@ -2,12 +2,12 @@ package ciserver;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.IOException;
-import java.io.File;
 import java.lang.Runtime;
-
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.UUID;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.NotImplementedException;
@@ -16,15 +16,15 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.util.StringRequestContent;
-import org.json.JSONObject;
-
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.json.JSONObject;
 
 
 /**
- * Handles the repository functions such as to clone, build, and
- * report back to Github about the status of it.
+ * Handles the repository functions such as to clone, build, and report back to Github about the
+ * status of it.
  */
 public class Repository {
 
@@ -38,18 +38,18 @@ public class Repository {
         }
     }
 
-    private CommitStatus commitStatus;
     private Payload payload;
+    private CommitStatus commitStatus;
     private String clonedRepositoryLocation;
 
     /**
-     * Constructs a repository object with a payload.
-     * Clones the corresponding remote repository.
+     * Constructs a repository object with a payload. Clones the corresponding remote repository.
      *
      * @param payload webhook payload
      */
     public Repository(Payload payload) throws IOException {
         this.payload = payload;
+        this.commitStatus = CommitStatus.PENDING;
     }
 
     /**
@@ -62,11 +62,8 @@ public class Repository {
         this.clonedRepositoryLocation = "src/cloneRemote-" + uniqueID;
         File file = new File(this.clonedRepositoryLocation);
 
-        try (Git git = Git.cloneRepository()
-            .setURI(cloneUrl)
-            .setDirectory(file)
-            .setBranch(branch)
-            .call()) {
+        try (Git git = Git.cloneRepository().setURI(cloneUrl).setDirectory(file).setBranch(branch)
+                .call()) {
             return "Success";
         } catch (GitAPIException e) {
             e.printStackTrace();
@@ -119,17 +116,30 @@ public class Repository {
         }
     }
 
-    public void reportCommitStatus(HttpClient client, String context)
+    /**
+     * Sends the commit status to GitHub using its REST API.
+     *
+     * @return The status code of the HTTP response. Should be 201 if sucessful.
+     */
+    public int reportCommitStatus(HttpClient client, String context)
             throws InterruptedException, TimeoutException, ExecutionException {
         JSONObject requestBody = new JSONObject();
         requestBody.put("state", commitStatus.value);
         requestBody.put("context", context);
         Request request = client.POST(this.payload.getStatusesUrl());
         request.body(new StringRequestContent(requestBody.toString()));
+
+        String token = System.getenv("CI_USER") + ":" + System.getenv("CI_TOKEN");
+        token = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
+        request.header(HttpHeader.AUTHORIZATION, "Basic " + token);
+
         Response response = request.send();
+        System.err.println(response.getStatus());
         if (response.getStatus() != 201) {
-            System.err.printf("reportCommitStatus response returned with status: %i%n", response.getStatus());
+            System.err.printf("reportCommitStatus response returned with status: %d %n",
+                    response.getStatus());
         }
+        return response.getStatus();
     }
 
     /**
@@ -152,6 +162,10 @@ public class Repository {
      */
     public String getClonedRepositoryLocation() {
         return this.clonedRepositoryLocation;
+    }
+
+    public void setCommitStatus(CommitStatus commitStatus) {
+        this.commitStatus = commitStatus;
     }
 
 }

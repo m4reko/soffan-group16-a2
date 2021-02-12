@@ -1,6 +1,7 @@
 package ciserver;
 
 import org.junit.Test;
+import ciserver.Repository.CommitStatus;
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
@@ -9,20 +10,28 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.dynamic.HttpClientTransportDynamic;
+import org.eclipse.jetty.io.ClientConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.ExecutionException;
+
 
 
 public class RepositoryTest {
     /**
-     * Test the clone remote function by cloning the test branch of this project's repository
-     * and checking if the readme file exist. It also test the get clone repository location
-     * function as a bonus.
-     * 
+     * Test the clone remote function by cloning the test branch of this project's repository and
+     * checking if the readme file exist. It also test the get clone repository location function as
+     * a bonus.
+     *
      * @throws IOException
      * @throws SecurityException
      */
     @Test
     public void testCloneRemote() throws IOException, SecurityException {
-        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+        BufferedReader reader =
+                new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
         Payload payload = new Payload(reader);
 
         Repository repository = new Repository(payload);
@@ -86,5 +95,26 @@ public class RepositoryTest {
         String parseBuildOutput = repository.parseBuild(mockOutput);
 
         assertEquals("Success", parseBuildOutput);
+    }
+
+    @Test
+    public void testReportCommitStatus() throws Exception, IOException, InterruptedException, TimeoutException, ExecutionException {
+        BufferedReader reader = new BufferedReader(
+                new FileReader("src/test/resources/test-commitstatus-data.json"));
+
+        SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
+
+        ClientConnector clientConnector = new ClientConnector();
+        clientConnector.setSslContextFactory(sslContextFactory);
+
+        HttpClient client = new HttpClient(new HttpClientTransportDynamic(clientConnector));
+        client.start();
+
+        Payload payload = new Payload(reader);
+
+        Repository repo = new Repository(payload);
+        repo.setCommitStatus(CommitStatus.FAILURE);
+
+        assertEquals(201, repo.reportCommitStatus(client, "Group16CIServerTest"));
     }
 }
