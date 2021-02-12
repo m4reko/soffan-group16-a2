@@ -64,9 +64,7 @@ public class RepositoryTest {
         String deleteRepositoryStatus = repository.deleteRepository();
 
         assertFalse(Files.exists(path));
-        // TODO Remove the created cloned repository automatically
     }
-
 
     /**
      * Test the build function. The mockOutput is an empty string as that is how a successful build would output.
@@ -88,7 +86,5 @@ public class RepositoryTest {
         String parseBuildOutput = repository.parseBuild(mockOutput);
 
         assertEquals("Success", parseBuildOutput);
-
-        // TODO Remove the created cloned repository automatically
     }
 }
