@@ -1,7 +1,10 @@
 package ciserver;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.File;
+import java.lang.Runtime;
 
 import java.util.UUID;
 
@@ -59,8 +62,46 @@ public class Repository {
     /**
      * Runs the Gradle build and checks to see if the build is successful or not.
      * It would set the commitStatus depending on the outcome of the build command.
+     * 
+     * @return String the process output
      */
-    public void build() {
+    public String build() {
+        String buildCommand = this.clonedRepositoryLocation + "/gradlew build -q";
+        Runtime runtime = Runtime.getRuntime();
+
+        try {
+            Process process = runtime.exec(buildCommand);
+            process.waitFor();
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+
+            String output = stringBuilder.toString();
+            bufferedReader.close();
+            process.destroy();
+            return output;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Fail";
+        }
+    }
+
+    /**
+     * Parses the output of the build function.
+     *
+     * @return String the status of the output
+     */
+    public String parseBuild(String output) {
+        if (output.equals("")) {
+            this.commitStatus = CommitStatus.SUCCESS;
+            return "Success";
+        } else {
+            this.commitStatus = CommitStatus.FAILURE;
+            return "Fail";
+        }
     }
 
     /**

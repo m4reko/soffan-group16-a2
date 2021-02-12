@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+
 public class RepositoryTest {
     /**
      * Test the clone remote function by cloning the test branch of this project's repository
@@ -34,6 +35,31 @@ public class RepositoryTest {
         Path path = Paths.get(readmeLocation);
 
         assertEquals(true, Files.exists(path));
+
+        // TODO Remove the created cloned repository automatically
+    }
+
+
+    /**
+     * Test the build function. The mockOutput is an empty string as that is how a successful build would output.
+     * This is because the build function runs gradlew build -p which only outputs something if it fails.
+     * 
+     * @throws IOException
+     * @throws SecurityException
+     */
+    @Test
+    public void testBuild() throws IOException, SecurityException {
+        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+        Payload payload = new Payload(reader);
+        reader.close();
+
+        Repository repository = new Repository(payload);
+
+        String mockOutput = "";
+
+        String parseBuildOutput = repository.parseBuild(mockOutput);
+
+        assertEquals("Success", parseBuildOutput);
 
         // TODO Remove the created cloned repository automatically
     }
