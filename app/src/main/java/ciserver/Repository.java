@@ -63,8 +63,8 @@ public class Repository {
      * Runs the Gradle build and checks to see if the build is successful or not.
      * It would set the commitStatus depending on the outcome of the build command.
      */
-    public void build() {
-        String buildCommand = "src/cloneRemote/gradlew build -q";
+    public String build() {
+        String buildCommand = this.clonedRepositoryLocation + "/gradlew build -q";
         Runtime runtime = Runtime.getRuntime();
 
         try {
@@ -76,16 +76,18 @@ public class Repository {
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-            System.out.println("done");
             String output = stringBuilder.toString();
             if (output.equals("")) {
                 this.commitStatus = CommitStatus.SUCCESS;
+                return "Success";
             } else {
                 this.commitStatus = CommitStatus.FAILURE;
             }
             bufferedReader.close();
+            return "Failure";
         } catch (Exception e) {
             e.printStackTrace();
+            return "Failure";
         }
     }
 
