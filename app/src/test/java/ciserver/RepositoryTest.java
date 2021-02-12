@@ -36,6 +36,34 @@ public class RepositoryTest {
 
         assertEquals(true, Files.exists(path));
 
+        repository.deleteRepository();
+    }
+
+    /**
+     * Test the delete repository function by cloning and then deleting the repository.
+     * 
+     * @throws IOException
+     * @throws SecurityException
+     */
+    @Test
+    public void testDeleteRepository() throws IOException, SecurityException {
+        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+        Payload payload = new Payload(reader);
+
+        Repository repository = new Repository(payload);
+        String cloneRemoteStatus = repository.cloneRemote();
+
+        assertEquals("Success", cloneRemoteStatus);
+
+        String clonedRepositoryLocation = repository.getClonedRepositoryLocation();
+        String readmeLocation = clonedRepositoryLocation + "/README.md";
+        Path path = Paths.get(readmeLocation);
+
+        assertTrue(Files.exists(path));
+
+        String deleteRepositoryStatus = repository.deleteRepository();
+
+        assertFalse(Files.exists(path));
         // TODO Remove the created cloned repository automatically
     }
 
