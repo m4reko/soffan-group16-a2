@@ -36,6 +36,7 @@ public class ContinuousIntegrationServer extends AbstractHandler
         String buildOutput = repo.build();
         repo.parseBuild(buildOutput);
         repo.reportCommitStatus();
+        repo.deleteRepository();
 
         response.getWriter().println("CI job done");
     }

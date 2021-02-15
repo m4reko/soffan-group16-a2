@@ -9,9 +9,11 @@ import java.lang.Runtime;
 import java.util.UUID;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.io.FileUtils;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+
 
 /**
  * Handles the repository functions such as to clone, build, and 
@@ -110,6 +112,19 @@ public class Repository {
      */
     public void reportCommitStatus() {
         throw new NotImplementedException();
+    }
+
+    /**
+     * Automatically deletes the repository that was cloned
+     */
+    public String deleteRepository() {
+        File file = new File(this.clonedRepositoryLocation);
+        try {
+            FileUtils.deleteDirectory(file);
+            return "Success";
+        } catch(IOException e) {
+            return "Failure";
+        }        
     }
 
     /**

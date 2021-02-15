@@ -36,9 +36,35 @@ public class RepositoryTest {
 
         assertEquals(true, Files.exists(path));
 
-        // TODO Remove the created cloned repository automatically
+        repository.deleteRepository();
     }
 
+    /**
+     * Test the delete repository function by cloning and then deleting the repository.
+     * 
+     * @throws IOException
+     * @throws SecurityException
+     */
+    @Test
+    public void testDeleteRepository() throws IOException, SecurityException {
+        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+        Payload payload = new Payload(reader);
+
+        Repository repository = new Repository(payload);
+        String cloneRemoteStatus = repository.cloneRemote();
+
+        assertEquals("Success", cloneRemoteStatus);
+
+        String clonedRepositoryLocation = repository.getClonedRepositoryLocation();
+        String readmeLocation = clonedRepositoryLocation + "/README.md";
+        Path path = Paths.get(readmeLocation);
+
+        assertTrue(Files.exists(path));
+
+        String deleteRepositoryStatus = repository.deleteRepository();
+
+        assertFalse(Files.exists(path));
+    }
 
     /**
      * Test the build function. The mockOutput is an empty string as that is how a successful build would output.
@@ -60,7 +86,5 @@ public class RepositoryTest {
         String parseBuildOutput = repository.parseBuild(mockOutput);
 
         assertEquals("Success", parseBuildOutput);
-
-        // TODO Remove the created cloned repository automatically
     }
 }
