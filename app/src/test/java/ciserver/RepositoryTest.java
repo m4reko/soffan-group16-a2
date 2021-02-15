@@ -56,7 +56,8 @@ public class RepositoryTest {
      */
     @Test
     public void testDeleteRepository() throws IOException, SecurityException {
-        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
+        BufferedReader reader =
+                new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
         Payload payload = new Payload(reader);
 
         Repository repository = new Repository(payload);
@@ -76,15 +77,17 @@ public class RepositoryTest {
     }
 
     /**
-     * Test the build function. The mockOutput is an empty string as that is how a successful build would output.
-     * This is because the build function runs gradlew build -p which only outputs something if it fails.
+     * Test the build function. The mockOutput is an empty string as that is how a successful build
+     * would output. This is because the build function runs gradlew build -p which only outputs
+     * something if it fails.
      *
      * @throws IOException
      * @throws SecurityException
      */
     @Test
     public void testBuild() throws IOException, SecurityException {
-        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
+        BufferedReader reader =
+                new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
         Payload payload = new Payload(reader);
         reader.close();
 
@@ -97,10 +100,23 @@ public class RepositoryTest {
         assertEquals("Success", parseBuildOutput);
     }
 
+
+    /**
+     * Test the report commit status functionality by reporting a fake commit status to a
+     * server-test branch on the GitHub repo of this project. We check that we get the correct
+     * response status code from GitHub.
+     *
+     * @throws Exception
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws TimeoutException
+     * @throws ExecutionException
+     */
     @Test
-    public void testReportCommitStatus() throws Exception, IOException, InterruptedException, TimeoutException, ExecutionException {
-        BufferedReader reader = new BufferedReader(
-                new FileReader("src/test/resources/test-push-data.json"));
+    public void testReportCommitStatus() throws Exception, IOException, InterruptedException,
+            TimeoutException, ExecutionException {
+        BufferedReader reader =
+                new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
 
         SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
 
