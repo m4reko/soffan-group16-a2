@@ -129,9 +129,9 @@ public class Repository {
         Request request = client.POST(this.payload.getStatusesUrl());
         request.body(new StringRequestContent(requestBody.toString()));
 
-        String token = System.getenv("CI_USER") + ":" + System.getenv("CI_TOKEN");
-        token = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.UTF_8));
-        request.header(HttpHeader.AUTHORIZATION, "Basic " + token);
+        String token_data = System.getenv("CI_USER") + ":" + System.getenv("CI_TOKEN");
+        final String token = Base64.getEncoder().encodeToString(token_data.getBytes(StandardCharsets.UTF_8));
+        request.headers(headers -> headers.put(HttpHeader.AUTHORIZATION, "Basic " + token));
 
         Response response = request.send();
         System.err.println(response.getStatus());
