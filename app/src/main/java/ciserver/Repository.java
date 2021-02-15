@@ -2,7 +2,6 @@ package ciserver;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.Runtime;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,7 +9,6 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
@@ -47,7 +45,7 @@ public class Repository {
      *
      * @param payload webhook payload
      */
-    public Repository(Payload payload) throws IOException {
+    public Repository(Payload payload) {
         this.payload = payload;
         this.commitStatus = CommitStatus.PENDING;
     }
@@ -55,7 +53,7 @@ public class Repository {
     /**
      * Clones the remote repository that is sent in the payload.
      */
-    public String cloneRemote() throws IOException {
+    public String cloneRemote() {
         String cloneUrl = this.payload.getCloneUrl();
         String branch = this.payload.getRef();
         String uniqueID = UUID.randomUUID().toString();
@@ -134,7 +132,6 @@ public class Repository {
         request.headers(headers -> headers.put(HttpHeader.AUTHORIZATION, "Basic " + token));
 
         Response response = request.send();
-        System.err.println(response.getStatus());
         if (response.getStatus() != 201) {
             System.err.printf("reportCommitStatus response returned with status: %d %n",
                     response.getStatus());

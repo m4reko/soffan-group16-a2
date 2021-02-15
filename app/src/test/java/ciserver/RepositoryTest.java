@@ -31,7 +31,7 @@ public class RepositoryTest {
     @Test
     public void testCloneRemote() throws IOException, SecurityException {
         BufferedReader reader =
-                new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+                new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
         Payload payload = new Payload(reader);
 
         Repository repository = new Repository(payload);
@@ -50,13 +50,13 @@ public class RepositoryTest {
 
     /**
      * Test the delete repository function by cloning and then deleting the repository.
-     * 
+     *
      * @throws IOException
      * @throws SecurityException
      */
     @Test
     public void testDeleteRepository() throws IOException, SecurityException {
-        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
         Payload payload = new Payload(reader);
 
         Repository repository = new Repository(payload);
@@ -70,7 +70,7 @@ public class RepositoryTest {
 
         assertTrue(Files.exists(path));
 
-        String deleteRepositoryStatus = repository.deleteRepository();
+        repository.deleteRepository();
 
         assertFalse(Files.exists(path));
     }
@@ -78,13 +78,13 @@ public class RepositoryTest {
     /**
      * Test the build function. The mockOutput is an empty string as that is how a successful build would output.
      * This is because the build function runs gradlew build -p which only outputs something if it fails.
-     * 
+     *
      * @throws IOException
      * @throws SecurityException
      */
     @Test
     public void testBuild() throws IOException, SecurityException {
-        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-simple-data.json"));
+        BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
         Payload payload = new Payload(reader);
         reader.close();
 
@@ -100,7 +100,7 @@ public class RepositoryTest {
     @Test
     public void testReportCommitStatus() throws Exception, IOException, InterruptedException, TimeoutException, ExecutionException {
         BufferedReader reader = new BufferedReader(
-                new FileReader("src/test/resources/test-commitstatus-data.json"));
+                new FileReader("src/test/resources/test-push-data.json"));
 
         SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
 

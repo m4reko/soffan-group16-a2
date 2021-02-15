@@ -12,6 +12,7 @@ public class Payload {
     private String cloneUrl;
     private String ref;
     private String statusesUrl;
+    private String sha;
     private JSONObject repoJson;
 
     /**
@@ -21,10 +22,11 @@ public class Payload {
      * @param requestReader BufferedReader with JSON data
      */
     public Payload(BufferedReader requestReader) throws IOException {
-        JSONObject json = parseJson(requestReader);
-        this.repoJson = json.getJSONObject("repository");
+        JSONObject payloadJson = parseJson(requestReader);
+        this.repoJson = payloadJson.getJSONObject("repository");
         this.cloneUrl = this.repoJson.getString("clone_url");
-        this.ref = json.getString("ref");
+        this.ref = payloadJson.getString("ref");
+        this.sha = payloadJson.getString("after");
         this.statusesUrl = this.repoJson.getString("statuses_url");
     }
 
@@ -47,7 +49,7 @@ public class Payload {
      * @return The url needed to write a status message
      */
     public String getStatusesUrl() {
-        return this.statusesUrl;
+        return this.statusesUrl.replace("{sha}", this.sha);
     }
 
     /**

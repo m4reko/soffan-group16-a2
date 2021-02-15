@@ -1,12 +1,13 @@
 package ciserver;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.dynamic.HttpClientTransportDynamic;
+import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -26,25 +27,28 @@ public class ContinuousIntegrationServer extends AbstractHandler {
         response.setContentType("text/html;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
-
-        HttpClient client = new HttpClient();
-
-        Payload payload = new Payload(request.getReader());
-
-        Repository repo = new Repository(payload);
-
-        repo.cloneRemote();
-        String buildOutput = repo.build();
-        repo.parseBuild(buildOutput);
-        repo.reportCommitStatus();
-        repo.deleteRepository();
         try {
+            HttpClient client = initHttpClient();
+            Payload payload = new Payload(request.getReader());
+            Repository repo = new Repository(payload);
+            repo.cloneRemote();
+            String buildOutput = repo.build();
+            repo.parseBuild(buildOutput);
+            repo.deleteRepository();
             repo.reportCommitStatus(client, CONTEXT);
-        } catch (InterruptedException | TimeoutException | ExecutionException e) {
-            e.printStackTrace();
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
-
         response.getWriter().println("CI job done");
+    }
+
+    private static HttpClient initHttpClient() throws Exception {
+        SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
+        ClientConnector clientConnector = new ClientConnector();
+        clientConnector.setSslContextFactory(sslContextFactory);
+        HttpClient client = new HttpClient(new HttpClientTransportDynamic(clientConnector));
+        client.start();
+        return client;
     }
 
     // used to start the CI server in command line
