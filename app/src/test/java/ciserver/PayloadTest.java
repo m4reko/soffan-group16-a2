@@ -15,7 +15,7 @@ public class PayloadTest {
 
         assertEquals("https://github.com/Codertocat/Hello-World.git", payload.getCloneUrl());
         assertEquals("refs/tags/simple-tag", payload.getRef());
-        assertEquals("https://api.github.com/repos/Codertocat/Hello-World/statuses/",
+        assertEquals("https://api.github.com/repos/Codertocat/Hello-World/statuses/a",
                 payload.getStatusesUrl());
     }
 }
