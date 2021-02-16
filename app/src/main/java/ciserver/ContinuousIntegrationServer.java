@@ -31,11 +31,16 @@ public class ContinuousIntegrationServer extends AbstractHandler {
             HttpClient client = initHttpClient();
             Payload payload = new Payload(request.getReader());
             Repository repo = new Repository(payload);
+            repo.reportCommitStatus(client, CONTEXT); // Reports pending
             repo.cloneRemote();
-            String buildOutput = repo.build();
-            repo.parseBuild(buildOutput);
+            int buildExitCode = repo.build();
+            if (buildExitCode == 0) {
+                System.out.println("Build successful");
+            } else {
+                System.out.println("Build failing");
+            }
             repo.deleteRepository();
-            repo.reportCommitStatus(client, CONTEXT);
+            repo.reportCommitStatus(client, CONTEXT); // Reports success or failure
         } catch (Exception e1) {
             e1.printStackTrace();
         }

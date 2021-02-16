@@ -83,9 +83,10 @@ public class RepositoryTest {
      *
      * @throws IOException
      * @throws SecurityException
+     * @throws InterruptedException
      */
     @Test
-    public void testBuild() throws IOException, SecurityException {
+    public void testBuild() throws IOException, SecurityException, InterruptedException {
         BufferedReader reader =
                 new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
         Payload payload = new Payload(reader);
@@ -93,11 +94,9 @@ public class RepositoryTest {
 
         Repository repository = new Repository(payload);
 
-        String mockOutput = "";
+        repository.setClonedRepositoryLocation("src/test/resources/test-repo");
 
-        String parseBuildOutput = repository.parseBuild(mockOutput);
-
-        assertEquals("Success", parseBuildOutput);
+        assertEquals(0, repository.build());
     }
 
 
@@ -129,7 +128,7 @@ public class RepositoryTest {
         Payload payload = new Payload(reader);
 
         Repository repo = new Repository(payload);
-        repo.setCommitStatus(CommitStatus.FAILURE);
+        repo.setCommitStatus(CommitStatus.PENDING);
 
         assertEquals(201, repo.reportCommitStatus(client, "Group16CIServerTest"));
     }
