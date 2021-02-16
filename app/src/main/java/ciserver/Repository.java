@@ -2,9 +2,9 @@ package ciserver;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class Repository {
     public Repository(Payload payload) {
         this.payload = payload;
         this.commitStatus = CommitStatus.PENDING;
-        this.uniqueID = UUID.randomUUID().toString();
+        this.uniqueID = payload.getSha();
     }
 
     /**
@@ -60,8 +60,7 @@ public class Repository {
         String cloneUrl = this.payload.getCloneUrl();
         String branch = this.payload.getRef();
 
-        this.clonedRepositoryLocation =
-                System.getenv("HOME") + "/ci-server/tmp-remotes/cloneRemote-" + this.uniqueID;
+        this.clonedRepositoryLocation = "ci-server/tmp-remotes/cloneRemote-" + this.uniqueID;
         File file = new File(this.clonedRepositoryLocation);
 
         try (Git git = Git.cloneRepository().setURI(cloneUrl).setDirectory(file).setBranch(branch)
@@ -84,13 +83,15 @@ public class Repository {
     public int build() throws InterruptedException, IOException {
         ProcessBuilder buildProcessBuilder = new ProcessBuilder("./gradlew", "build");
         Map<String, String> env = buildProcessBuilder.environment();
-        env.put("CI_TOKEN", System.getenv("CI_TOKEN"));
-        env.put("CI_NAME", System.getenv("CI_NAME"));
+        try {
+            env.put("CI_TOKEN", System.getenv("CI_TOKEN"));
+            env.put("CI_NAME", System.getenv("CI_NAME"));
+        } catch (NullPointerException e) {
+            System.err.println("You have not specified your GitHub credentials which means report commit status won't work");
+        }
         buildProcessBuilder.directory(new File(this.clonedRepositoryLocation));
-        File output = new File(System.getenv("HOME") + "/ci-server/buildlogs/" + this.uniqueID);
-        output.getParentFile().mkdirs();
-        output.createNewFile();
-        buildProcessBuilder.redirectOutput(output);
+        File output = BuildLogs.createLogFile(uniqueID);
+        buildProcessBuilder.redirectOutput(Redirect.appendTo(output));
         Process process = buildProcessBuilder.start();
         int buildExitCode = process.waitFor();
         process.destroy();
@@ -119,7 +120,9 @@ public class Repository {
         requestBody.put("context", context);
         Request request = client.POST(this.payload.getStatusesUrl());
         request.body(new StringRequestContent(requestBody.toString()));
-
+        if (System.getenv("CI_TOKEN") == null) {
+            System.err.println("You have not specified your GitHub credentials which means report commit status won't work");
+        }
         String token_data = System.getenv("CI_USER") + ":" + System.getenv("CI_TOKEN");
         final String token =
                 Base64.getEncoder().encodeToString(token_data.getBytes(StandardCharsets.UTF_8));

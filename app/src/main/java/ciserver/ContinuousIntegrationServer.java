@@ -25,27 +25,35 @@ public class ContinuousIntegrationServer extends AbstractHandler {
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request,
             HttpServletResponse response) throws IOException {
-        response.setContentType("text/html;charset=utf-8");
+        response.setContentType("text/plain;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
         baseRequest.setHandled(true);
         try {
-            HttpClient client = initHttpClient();
-            Payload payload = new Payload(request.getReader());
-            Repository repo = new Repository(payload);
-            repo.reportCommitStatus(client, CONTEXT); // Reports pending
-            repo.cloneRemote();
-            int buildExitCode = repo.build();
-            if (buildExitCode == 0) {
-                System.out.println("Build successful");
+            if (request.getMethod().equals("POST")) {
+                HttpClient client = initHttpClient();
+                Payload payload = new Payload(request.getReader());
+                Repository repo = new Repository(payload);
+                repo.reportCommitStatus(client, CONTEXT); // Reports pending
+                repo.cloneRemote();
+                int buildExitCode = repo.build();
+                if (buildExitCode == 0) {
+                    System.out.println("Build successful");
+                } else {
+                    System.out.println("Build failing");
+                }
+                repo.deleteRepository();
+                repo.reportCommitStatus(client, CONTEXT); // Reports success or failure
+            } else if (target.equals("/buildlogs")) {
+                response.getWriter().println(BuildLogs.getBuildLogs());
+            } else if (target.startsWith("/buildlogs/")) {
+                String uniqueId = target.replace("/buildlogs/","");
+                response.getWriter().println(BuildLogs.getBuildLog(uniqueId));
             } else {
-                System.out.println("Build failing");
+                response.getWriter().println("CI server");
             }
-            repo.deleteRepository();
-            repo.reportCommitStatus(client, CONTEXT); // Reports success or failure
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        response.getWriter().println("CI job done");
     }
 
     /**
