@@ -1,7 +1,5 @@
 package ciserver;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,6 +7,7 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
@@ -39,6 +38,7 @@ public class Repository {
     private Payload payload;
     private CommitStatus commitStatus;
     private String clonedRepositoryLocation;
+    private String uniqueID;
 
     /**
      * Constructs a repository object with a payload. Clones the corresponding remote repository.
@@ -48,6 +48,7 @@ public class Repository {
     public Repository(Payload payload) {
         this.payload = payload;
         this.commitStatus = CommitStatus.PENDING;
+        this.uniqueID = UUID.randomUUID().toString();
     }
 
     /**
@@ -56,8 +57,9 @@ public class Repository {
     public String cloneRemote() {
         String cloneUrl = this.payload.getCloneUrl();
         String branch = this.payload.getRef();
-        String uniqueID = UUID.randomUUID().toString();
-        this.clonedRepositoryLocation = "src/cloneRemote-" + uniqueID;
+
+        this.clonedRepositoryLocation =
+                System.getenv("HOME") + "/ci-server/tmp-remotes/cloneRemote-" + this.uniqueID;
         File file = new File(this.clonedRepositoryLocation);
 
         try (Git git = Git.cloneRepository().setURI(cloneUrl).setDirectory(file).setBranch(branch)
@@ -70,32 +72,30 @@ public class Repository {
     }
 
     /**
-     * Runs the Gradle build and checks to see if the build is successful or not.
-     * It would set the commitStatus depending on the outcome of the build command.
+     * Runs the Gradle build and checks to see if the build is successful or not. It would set the
+     * commitStatus depending on the outcome of the build command.
      *
      * @return String the process output
      */
-    public String build() {
-        String buildCommand = this.clonedRepositoryLocation + "/gradlew build -q";
-        Runtime runtime = Runtime.getRuntime();
-
+    public int build() {
         try {
-            Process process = runtime.exec(buildCommand);
-            process.waitFor();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            StringBuilder stringBuilder = new StringBuilder();
-            String line = "";
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line);
-            }
-
-            String output = stringBuilder.toString();
-            bufferedReader.close();
+            ProcessBuilder processBuilder = new ProcessBuilder("./gradlew", "build");
+            Map<String, String> env = processBuilder.environment();
+            env.put("CI_TOKEN", System.getenv("CI_TOKEN"));
+            env.put("CI_NAME", System.getenv("CI_NAME"));
+            processBuilder.directory(new File(this.clonedRepositoryLocation));
+            File output = new File(System.getenv("HOME") + "/ci-server/buildlogs/" + this.uniqueID);
+            output.getParentFile().mkdirs();
+            output.createNewFile();
+            processBuilder.redirectOutput(output);
+            Process process = processBuilder.start();
+            int exitCode = process.waitFor();
+            System.out.printf("build exit code: %d %n", exitCode);
             process.destroy();
-            return output;
+            return exitCode;
         } catch (Exception e) {
             e.printStackTrace();
-            return "Fail";
+            return 1;
         }
     }
 
@@ -104,8 +104,8 @@ public class Repository {
      *
      * @return String the status of the output
      */
-    public String parseBuild(String output) {
-        if (output.equals("")) {
+    public String parseBuild(int buildExitCode) {
+        if (buildExitCode == 0) {
             this.commitStatus = CommitStatus.SUCCESS;
             return "Success";
         } else {
@@ -128,7 +128,8 @@ public class Repository {
         request.body(new StringRequestContent(requestBody.toString()));
 
         String token_data = System.getenv("CI_USER") + ":" + System.getenv("CI_TOKEN");
-        final String token = Base64.getEncoder().encodeToString(token_data.getBytes(StandardCharsets.UTF_8));
+        final String token =
+                Base64.getEncoder().encodeToString(token_data.getBytes(StandardCharsets.UTF_8));
         request.headers(headers -> headers.put(HttpHeader.AUTHORIZATION, "Basic " + token));
 
         Response response = request.send();
@@ -147,7 +148,7 @@ public class Repository {
         try {
             FileUtils.deleteDirectory(file);
             return "Success";
-        } catch(IOException e) {
+        } catch (IOException e) {
             return "Failure";
         }
     }

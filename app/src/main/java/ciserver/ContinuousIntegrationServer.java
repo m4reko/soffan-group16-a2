@@ -31,9 +31,10 @@ public class ContinuousIntegrationServer extends AbstractHandler {
             HttpClient client = initHttpClient();
             Payload payload = new Payload(request.getReader());
             Repository repo = new Repository(payload);
-            repo.cloneRemote();
-            String buildOutput = repo.build();
-            repo.parseBuild(buildOutput);
+            String cloneStatus = repo.cloneRemote();
+            System.err.println(cloneStatus);
+            int buildExitCode = repo.build();
+            repo.parseBuild(buildExitCode);
             repo.deleteRepository();
             repo.reportCommitStatus(client, CONTEXT);
         } catch (Exception e1) {
