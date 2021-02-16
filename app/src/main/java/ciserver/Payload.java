@@ -20,7 +20,7 @@ public class Payload {
      * values.
      *
      * @param requestReader BufferedReader with JSON data
-     * @throws IOException 
+     * @throws IOException
      */
     public Payload(BufferedReader requestReader) throws IOException {
         JSONObject payloadJson = parseJson(requestReader);
@@ -33,7 +33,7 @@ public class Payload {
 
     /**
      * Gets the clone URL.
-     * 
+     *
      * @return The URL needed to clone a repository
      */
     public String getCloneUrl() {
@@ -42,7 +42,7 @@ public class Payload {
 
     /**
      * Gets the ref of the push.
-     * 
+     *
      * @return The ref of the pushed commit
      */
     public String getRef() {
@@ -50,8 +50,16 @@ public class Payload {
     }
 
     /**
+     *
+     * @return The Sha value of the commit
+     */
+    public String getSha() {
+        return this.sha;
+    }
+
+    /**
      * Gets the status URL.
-     * 
+     *
      * @return The url needed to write a status message
      */
     public String getStatusesUrl() {
@@ -68,4 +76,5 @@ public class Payload {
     private static JSONObject parseJson(BufferedReader requestReader) throws IOException {
         return new JSONObject(requestReader.readLine());
     }
+
 }
