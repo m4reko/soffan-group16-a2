@@ -21,6 +21,7 @@ public class ContinuousIntegrationServer extends AbstractHandler {
 
     private static final String CONTEXT = "Group16CIServer";
 
+
     @Override
     public void handle(String target, Request baseRequest, HttpServletRequest request,
             HttpServletResponse response) throws IOException {
@@ -47,6 +48,11 @@ public class ContinuousIntegrationServer extends AbstractHandler {
         response.getWriter().println("CI job done");
     }
 
+    /**
+     * initializes and returns a HTTP client
+     * 
+     * @return jetty HTTPClient
+    */
     private static HttpClient initHttpClient() throws Exception {
         SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
         ClientConnector clientConnector = new ClientConnector();
@@ -56,7 +62,9 @@ public class ContinuousIntegrationServer extends AbstractHandler {
         return client;
     }
 
-    // used to start the CI server in command line
+    /**
+     * Used to start the CI server in command line. Listens on Localhost:8080.
+     */
     public static void main(String[] args) throws Exception {
         Server server = new Server(8080);
         server.setHandler(new ContinuousIntegrationServer());

@@ -53,6 +53,8 @@ public class Repository {
 
     /**
      * Clones the remote repository that is sent in the payload.
+     * 
+     * @return The status of the cloning. Returns "Success" if successful and "Fail" otherwise.
      */
     public String cloneRemote() {
         String cloneUrl = this.payload.getCloneUrl();
@@ -103,7 +105,12 @@ public class Repository {
     /**
      * Sends the commit status to GitHub using its REST API.
      *
+     * @param client
+     * @param context
      * @return The status code of the HTTP response. Should be 201 if sucessful.
+     * @throws InterruptedException
+     * @throws TimeoutException
+     * @throws ExecutionException
      */
     public int reportCommitStatus(HttpClient client, String context)
             throws InterruptedException, TimeoutException, ExecutionException {
@@ -127,7 +134,9 @@ public class Repository {
     }
 
     /**
-     * Automatically deletes the repository that was cloned
+     * Automatically deletes the repository that was cloned.
+     * 
+     * @return The status of the deletion of the repository.
      */
     public String deleteRepository() {
         File file = new File(this.clonedRepositoryLocation);
@@ -140,14 +149,19 @@ public class Repository {
     }
 
     /**
-     * Gets the path of the cloned repository
+     * Gets the path of the cloned repository.
      *
-     * @return String of the location
+     * @return String of the location.
      */
     protected String getClonedRepositoryLocation() {
         return this.clonedRepositoryLocation;
     }
 
+    /**
+     * Sets the commit status class variable.
+     * 
+     * @param commitStatus
+     */
     public void setCommitStatus(CommitStatus commitStatus) {
         this.commitStatus = commitStatus;
     }

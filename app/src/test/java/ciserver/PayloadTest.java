@@ -8,6 +8,11 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class PayloadTest {
+    /**
+     * Test the Payload constructor with dummy static data.
+     * 
+     * @throws IOException
+     */
     @Test
     public void testConstructor() throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader("src/test/resources/test-push-data.json"));
