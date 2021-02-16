@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"ciserver","l":"Repository.CommitStatus"},{"p":"ciserver","l":"ContinuousIntegrationServer"},{"p":"ciserver","l":"Payload"},{"p":"ciserver","l":"Repository"}]
