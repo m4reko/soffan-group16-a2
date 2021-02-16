@@ -76,42 +76,28 @@ public class Repository {
      * commitStatus depending on the outcome of the build command.
      *
      * @return String the process output
+     * @throws InterruptedException
+     * @throws IOException
      */
-    public int build() {
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder("./gradlew", "build");
-            Map<String, String> env = processBuilder.environment();
-            env.put("CI_TOKEN", System.getenv("CI_TOKEN"));
-            env.put("CI_NAME", System.getenv("CI_NAME"));
-            processBuilder.directory(new File(this.clonedRepositoryLocation));
-            File output = new File(System.getenv("HOME") + "/ci-server/buildlogs/" + this.uniqueID);
-            output.getParentFile().mkdirs();
-            output.createNewFile();
-            processBuilder.redirectOutput(output);
-            Process process = processBuilder.start();
-            int exitCode = process.waitFor();
-            System.out.printf("build exit code: %d %n", exitCode);
-            process.destroy();
-            return exitCode;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 1;
-        }
-    }
-
-    /**
-     * Parses the output of the build function.
-     *
-     * @return String the status of the output
-     */
-    public String parseBuild(int buildExitCode) {
+    public int build() throws InterruptedException, IOException {
+        ProcessBuilder buildProcessBuilder = new ProcessBuilder("./gradlew", "build");
+        Map<String, String> env = buildProcessBuilder.environment();
+        env.put("CI_TOKEN", System.getenv("CI_TOKEN"));
+        env.put("CI_NAME", System.getenv("CI_NAME"));
+        buildProcessBuilder.directory(new File(this.clonedRepositoryLocation));
+        File output = new File(System.getenv("HOME") + "/ci-server/buildlogs/" + this.uniqueID);
+        output.getParentFile().mkdirs();
+        output.createNewFile();
+        buildProcessBuilder.redirectOutput(output);
+        Process process = buildProcessBuilder.start();
+        int buildExitCode = process.waitFor();
+        process.destroy();
         if (buildExitCode == 0) {
             this.commitStatus = CommitStatus.SUCCESS;
-            return "Success";
         } else {
             this.commitStatus = CommitStatus.FAILURE;
-            return "Fail";
         }
+        return buildExitCode;
     }
 
     /**
@@ -158,12 +144,19 @@ public class Repository {
      *
      * @return String of the location
      */
-    public String getClonedRepositoryLocation() {
+    protected String getClonedRepositoryLocation() {
         return this.clonedRepositoryLocation;
     }
 
     public void setCommitStatus(CommitStatus commitStatus) {
         this.commitStatus = commitStatus;
+    }
+
+    /**
+     * Sets the cloned repository location class variable.
+     */
+    protected void setClonedRepositoryLocation(String clonedRepositoryLocation) {
+        this.clonedRepositoryLocation = clonedRepositoryLocation;
     }
 
 }
