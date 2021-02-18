@@ -30,7 +30,7 @@ public class ContinuousIntegrationServer extends AbstractHandler {
         baseRequest.setHandled(true);
         try {
             if (request.getMethod().equals("POST")) {
-                HttpClient client = initHttpClient()
+                HttpClient client = initHttpClient();
                 Payload payload = new Payload(request.getReader());
                 Repository repo = new Repository(payload);
                 repo.reportCommitStatus(client, CONTEXT); // Reports pending
